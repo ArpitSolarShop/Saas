@@ -1,6 +1,6 @@
-import { ProjectConfig } from 'playwright/test';
+import { PlaywrightTestConfig } from '@playwright/test';
 
-const config: ProjectConfig = {
+const config: PlaywrightTestConfig = {
     timeout: 30000,
     retries: 2,
     use: {
