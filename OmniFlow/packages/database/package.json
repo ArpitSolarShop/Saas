@@ -1,0 +1,22 @@
+{
+    "name": "@omniflow/database",
+    "version": "0.0.1",
+    "private": true,
+    "description": "Prisma schema & database migrations for OmniFlow",
+    "scripts": {
+        "db:generate": "prisma generate",
+        "db:migrate": "prisma migrate dev",
+        "db:push": "prisma db push",
+        "db:studio": "prisma studio",
+        "build": "tspc -p tsconfig.json",
+        "clean": "rimraf dist"
+    },
+    "dependencies": {
+        "@prisma/client": "^6.5.0"
+    },
+    "devDependencies": {
+        "prisma": "^6.5.0",
+        "typescript": "^5.8.0",
+        "rimraf": "^6.0.0"
+    }
+}

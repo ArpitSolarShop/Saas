@@ -1,0 +1,33 @@
+{
+  "name": "omniflow",
+  "version": "0.0.1",
+  "private": true,
+  "description": "OmniFlow — Unified open-source SaaS platform (CRM, ERP, Messaging, AI, Automation)",
+  "license": "MIT",
+  "author": "Arpit",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "db:generate": "turbo run db:generate --filter=@omniflow/database",
+    "db:migrate": "turbo run db:migrate --filter=@omniflow/database",
+    "db:push": "turbo run db:push --filter=@omniflow/database",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "clean": "turbo run clean && rimraf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "prettier": "^3.5.0",
+    "rimraf": "^6.0.0",
+    "typescript": "^5.8.0"
+  },
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=10.0.0"
+  }
+}
