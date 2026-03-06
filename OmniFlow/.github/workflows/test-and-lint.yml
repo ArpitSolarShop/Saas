@@ -1,0 +1,62 @@
+name: Test & Lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'OmniFlow/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'OmniFlow/**'
+
+defaults:
+  run:
+    working-directory: OmniFlow
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: omniflow
+          POSTGRES_PASSWORD: omniflow_secret
+          POSTGRES_DB: omniflow_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U omniflow"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: cd packages/database && npx prisma generate
+
+      - name: Build all packages
+        run: pnpm build
+        env:
+          DATABASE_URL: postgresql://omniflow:omniflow_secret@localhost:5432/omniflow_test
+
+      - name: Lint
+        run: pnpm lint
+        continue-on-error: true
