@@ -1073,6 +1073,46 @@
 
 ---
 
+## MODULE 24: Self-Hosted Email Suite
+
+### Source: Mailcow (primary — full email backend and groupware)
+
+### Features to Implement
+
+1. **Email Backend (MTA & IMAP)**
+   - Postfix SMTP routing and relaying
+   - Dovecot IMAP/POP3 storage and indexing
+   - Multi-domain hosting with virtual mailboxes
+   - Email aliases and forwarding logic
+   - IMAP sync tools for migration
+
+2. **Webmail & Groupware (SOGo)**
+   - Web application for email, contacts, and calendars
+   - CalDAV & CardDAV server
+   - ActiveSync (EAS) for native mobile push sync
+   - Sharing capabilities for folders and calendars
+
+3. **Security & Anti-Spam**
+   - Mandatory TLS, MTA-STS, DANE
+   - DKIM, DMARC, ARC checking and signing
+   - Rspamd integration for spam scoring
+   - ClamAV & olefy for malicious attachments
+   - Sieve filters for server-side rules
+   - Netfilter (Fail2ban equivalent) for brute-force protection
+
+4. **Administration & Identity**
+   - Central-admin UI for domain and mailbox management
+   - FIDO2/WebAuthn and TOTP for 2FA
+   - App passwords for isolated IMAP/SMTP access
+   - Quota management
+
+### Implementation Notes
+- Mailcow is heavily Docker-dependent and utilizes many interconnected containers (Postfix, Dovecot, SOGo, PHP, Nginx).
+- It's best integrated as a standalone cluster (Docker Compose) that the unified SaaS talks to via API to provision domains and mailboxes, similar to Traccar.
+- The SOGo component perfectly fills the groupware void (CalDAV/CardDAV) missing from the other CRM systems.
+
+---
+
 ## Implementation Priority
 
 ### Phase 1: Foundation (Weeks 1-4)
@@ -1111,22 +1151,23 @@
 25. Billing & subscriptions
 26. Calendar integration
 
-### Phase 6: Intelligence, Fleet, SMS & Quality (Weeks 25-34)
+### Phase 6: Intelligence, Infrastructure & Comms (Weeks 25-34)
 27. AI Agents & Intelligence (AI agent system, LangChain, MCP)
 28. Analytics & Insights (dashboards, ClickHouse, audit trail)
-29. **GPS & Fleet Management (real-time tracking, geofencing, reports)**
-30. **SMS Gateway (SMPP, routing, billing, DLR from Jasmin)**
-31. Quality Management (inspections, goals, non-conformance)
-32. Subcontracting (orders, receipts, material tracking)
-33. Platform Extensions (marketplace, chrome extension, logic functions)
+29. **GPS & Fleet Management (from Traccar)**
+30. **SMS Gateway (from Jasmin)**
+31. **Self-Hosted Email & Groupware (from Mailcow)**
+32. Quality Management (inspections, goals, non-conformance)
+33. Subcontracting (orders, receipts, material tracking)
+34. Platform Extensions (marketplace, extensions)
 
 ### Phase 7: Polish (Weeks 35-40)
-34. Dashboards & reporting
-35. Campaign management
-36. Data import/export & spreadsheet import
-37. Geo Map & visualization
-38. Source control for workflows
-39. Log streaming & monitoring
-40. SLA & CSAT management
-41. Mobile responsive
-42. Documentation & API docs
+35. Dashboards & reporting
+36. Campaign management
+37. Data import/export & spreadsheet import
+38. Geo Map & visualization
+39. Source control for workflows
+40. Log streaming & monitoring
+41. SLA & CSAT management
+42. Mobile responsive
+43. Documentation & API docs

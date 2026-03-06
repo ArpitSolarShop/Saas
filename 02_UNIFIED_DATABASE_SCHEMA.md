@@ -1,6 +1,6 @@
 # 🗄️ Unified Database Schema
 
-> Merged database architecture combining the best features from ERPNext, Evolution API, n8n, Twenty CRM, Traccar, Chatwoot, and Jasmin into a single cohesive PostgreSQL schema.
+> Merged database architecture combining the best features from ERPNext, Evolution API, n8n, Twenty CRM, Traccar, Chatwoot, Jasmin, and Mailcow into a single cohesive PostgreSQL schema.
 
 ---
 
@@ -1525,7 +1525,7 @@ CREATE TABLE user_device (
 
 ---
 
-## Total Table Count: ~80 Core Tables
+## Total Table Count: ~120 Core Tables
 
 | Category | Tables | Source |
 |----------|--------|--------|
@@ -1548,7 +1548,8 @@ CREATE TABLE user_device (
 | **Junction Tables** | **3** | **Traccar** |
 | **Customer Support** | **10** | **Chatwoot** |
 | **SMS Gateway** | **4** | **Jasmin** |
-| **TOTAL** | **~80** | **All 8 projects merged** |
+| **Email & Groupware**| **~40**| **Mailcow** |
+| **TOTAL** | **~120** | **All 9 projects merged** |
 
 ---
 
@@ -1861,6 +1862,116 @@ CREATE TABLE smpp_connector (
     health_status VARCHAR(20) DEFAULT 'unknown', -- 'connected', 'disconnected', 'error'
     last_connected_at TIMESTAMPTZ,
     config JSONB DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+---
+
+## 📧 EMAIL & GROUPWARE (from Mailcow)
+
+> These tables power the self-hosted email backend (Postfix/Dovecot), Webmail/ActiveSync (SOGo), and anti-spam (Rspamd) configuration.
+
+### `mail_domain` — Email Domains
+
+```sql
+CREATE TABLE mail_domain (
+    domain VARCHAR(255) PRIMARY KEY,
+    workspace_id UUID REFERENCES workspace(id),
+    description VARCHAR(255),
+    aliases INTEGER NOT NULL DEFAULT 0,
+    mailboxes INTEGER NOT NULL DEFAULT 0,
+    defquota BIGINT NOT NULL DEFAULT 3072,
+    maxquota BIGINT NOT NULL DEFAULT 102400,
+    quota BIGINT NOT NULL DEFAULT 102400,
+    relayhost VARCHAR(255) NOT NULL DEFAULT '0',
+    backupmx BOOLEAN NOT NULL DEFAULT FALSE,
+    gal BOOLEAN NOT NULL DEFAULT TRUE,         -- Global Address List
+    relay_all_recipients BOOLEAN NOT NULL DEFAULT FALSE,
+    relay_unknown_only BOOLEAN NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### `mailbox` — Email Accounts
+
+```sql
+CREATE TABLE mailbox (
+    username VARCHAR(255) PRIMARY KEY,         -- full email address
+    workspace_id UUID REFERENCES workspace(id),
+    domain VARCHAR(255) NOT NULL REFERENCES mail_domain(domain),
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
+    description VARCHAR(255),
+    mailbox_path_prefix VARCHAR(150) DEFAULT '/var/vmail/',
+    quota BIGINT NOT NULL DEFAULT 102400,      -- MB storage limit
+    local_part VARCHAR(255) NOT NULL,
+    attributes JSONB,
+    custom_attributes JSONB DEFAULT '{}',
+    kind VARCHAR(100) DEFAULT '',              -- e.g., 'shared', 'resource'
+    multiple_bookings INTEGER DEFAULT -1,
+    authsource VARCHAR(50) DEFAULT 'mailcow',  -- 'mailcow', 'keycloak', 'ldap'
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### `mail_alias` — Email Forwarding / Distribution Lists
+
+```sql
+CREATE TABLE mail_alias (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    address VARCHAR(255) NOT NULL UNIQUE,      -- incoming alias address
+    goto TEXT NOT NULL,                        -- comma-separated destinations
+    domain VARCHAR(255) NOT NULL REFERENCES mail_domain(domain),
+    private_comment TEXT,
+    public_comment TEXT,
+    sogo_visible BOOLEAN NOT NULL DEFAULT TRUE,
+    internal BOOLEAN NOT NULL DEFAULT FALSE,
+    sender_allowed BOOLEAN NOT NULL DEFAULT TRUE,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### `mail_user_acl` — Feature Toggles per Mailbox
+
+```sql
+CREATE TABLE mail_user_acl (
+    username VARCHAR(255) PRIMARY KEY REFERENCES mailbox(username) ON DELETE CASCADE,
+    spam_alias BOOLEAN NOT NULL DEFAULT TRUE,
+    tls_policy BOOLEAN NOT NULL DEFAULT TRUE,
+    spam_score BOOLEAN NOT NULL DEFAULT TRUE,
+    spam_policy BOOLEAN NOT NULL DEFAULT TRUE,
+    delimiter_action BOOLEAN NOT NULL DEFAULT TRUE,
+    syncjobs BOOLEAN NOT NULL DEFAULT FALSE,
+    eas_reset BOOLEAN NOT NULL DEFAULT TRUE,
+    sogo_profile_reset BOOLEAN NOT NULL DEFAULT FALSE,
+    pushover BOOLEAN NOT NULL DEFAULT TRUE,
+    quarantine BOOLEAN NOT NULL DEFAULT TRUE,
+    quarantine_attachments BOOLEAN NOT NULL DEFAULT TRUE,
+    quarantine_notification BOOLEAN NOT NULL DEFAULT TRUE,
+    quarantine_category BOOLEAN NOT NULL DEFAULT TRUE,
+    app_passwds BOOLEAN NOT NULL DEFAULT TRUE,
+    pw_reset BOOLEAN NOT NULL DEFAULT TRUE
+);
+```
+
+### `sieve_filters` — Server-side Mail Rules
+
+```sql
+CREATE TABLE sieve_filters (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username VARCHAR(255) NOT NULL REFERENCES mailbox(username) ON DELETE CASCADE,
+    script_desc VARCHAR(255) NOT NULL,
+    script_name VARCHAR(50),                   -- 'active' or 'inactive'
+    script_data TEXT NOT NULL,                 -- Sieve script content
+    filter_type VARCHAR(20),                   -- 'postfilter', 'prefilter'
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

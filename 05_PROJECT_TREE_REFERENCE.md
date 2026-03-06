@@ -1468,3 +1468,53 @@ Each protocol is a folder with `*Protocol.java` (connection handler) and `*Proto
 | Manager files | 7 (listeners.py = 38KB) |
 | Route types | 5 (Static, Roundrobin, Failover, Leastcost, HLR) |
 | Deployment options | 4 (Docker, Kubernetes, Ubuntu pkg, RedHat pkg) |
+
+---
+
+## 9. Mailcow
+
+**Path**: `C:\Users\arpit\OneDrive\Desktop\Saas\mailcow-dockerized`
+**Tech**: Docker, Postfix, Dovecot, SOGo, Rspamd, ClamAV, PHP, MariaDB, Redis
+
+### Root Files
+
+| File | Purpose |
+|------|---------|
+| `docker-compose.yml` | Full mailcow environment composition |
+| `generate_config.sh` | Setup script for `.env` generation |
+| `update.sh` | Update utility |
+| `mailcow.conf` | Core mailcow configuration file |
+
+### Configuration: `data/conf/`
+
+| Folder | Purpose |
+|--------|---------|
+| `postfix/` | **SMTP Server** (MTA) configuration (main.cf, master.cf) |
+| `dovecot/` | **IMAP/POP3 Server** configuration |
+| `sogo/` | **Webmail & Groupware** (CalDAV/CardDAV/ActiveSync) config |
+| `rspamd/` | **Anti-Spam** configuration and modules |
+| `clamav/` | **Anti-Virus** signature databases and config |
+| `mysql/` | MariaDB initialization and configuration |
+| `redis/` | Redis cache configuration (used by Rspamd) |
+| `nginx/` | Web server config for Admin UI and SOGo |
+| `phpfpm/` | PHP-FPM configuration for the Admin UI |
+| `unbound/` | DNS caching and DNSSEC |
+
+### Admin Interface: `data/web/`
+
+| Folder | Purpose |
+|--------|---------|
+| `index.php` | Main entrypoint for mailcow admin and user panels |
+| `inc/` | Core logic and database schema definitions (`init_db.inc.php`) |
+| `admin/` | Server administration interface |
+| `domainadmin/` | Domain-level administration UI |
+| `user/` | Mailbox-level user settings UI |
+| `api/` | Management REST API |
+
+### Summary Statistics
+
+| Metric | Value |
+|--------|-------|
+| Core Services | 10 (Postfix, Dovecot, SOGo, Rspamd, ClamAV, MariaDB, Redis, Nginx, PHP, Unbound) |
+| Total DB Tables | ~40 |
+| Deployment Type | Docker Compose Cluster |

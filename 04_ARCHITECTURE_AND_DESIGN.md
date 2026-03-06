@@ -112,6 +112,11 @@
 │  │  SMPP Client/Server | HTTP/REST API | Message Router           │ │
 │  │  Billing Engine | DLR Tracking (Redis) | AMQP Queuing          │ │
 │  └────────────────────────────────────────────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │  Email Suite (from Mailcow — Docker/Postfix/Dovecot/SOGo)      │ │
+│  │  MTA Server | IMAP/POP3 Storage | CalDAV/CardDAV | ActiveSync  │ │
+│  │  Spam & Virus Filtering (Rspamd/ClamAV) | Admin UI             │ │
+│  └────────────────────────────────────────────────────────────────┘ │
 └────────────────────────────┼────────────────────────────────────────┘
                              │
 ┌────────────────────────────┼────────────────────────────────────────┐
@@ -169,24 +174,27 @@
 
 ## Conflict Resolution Strategy
 
-### 1. CRM Contacts: Three Sources → One Model
+### 1. CRM Contacts & Calendars: Four Sources → One Model
 
 | Source | Has | Decision |
 |--------|-----|----------|
 | **Twenty CRM Person** | first_name, last_name, email, phone, avatar, jobTitle, city | ✅ Use as base structure |
-| **Evolution API Contact** | remoteJid, pushName, profilePicUrl | ✅ Add WhatsApp fields |
+| **Chatwoot / Evolution API Contact** | remoteJid, pushName, social profiles | ✅ Add omnichannel fields |
 | **ERPNext Customer** | customer_type, customer_group, territory, industry, credit_limit | ✅ Add business fields |
+| **Mailcow (SOGo)** | CardDAV / CalDAV endpoints | ✅ Use as sync backend |
 
-**Result**: Unified `contact` table with all fields from all three. No data loss. Contacts auto-created from WhatsApp conversations, enriched with CRM data, and linked to accounting customer records.
+**Result**: Unified `contact` table with all fields. Contacts auto-created from conversations, enriched with CRM data, linked to accounting customer records, and bi-directionally synced to mobile devices via SOGo CardDAV.
 
-### 2. Messaging: Two Sources → One Unified Inbox
+### 2. Messaging: Four Sources → One Unified Inbox
 
 | Source | Has | Decision |
 |--------|-----|----------|
-| **Evolution API** | WhatsApp (Baileys + Cloud API), webhooks, templates | ✅ Use as messaging engine |
-| **Twenty CRM** | Email messages, email threading, OAuth email sync | ✅ Use email system |
+| **Chatwoot** | 12 channels, omnichannel inbox, SLAs, macros | ✅ Use as unified UI & engine |
+| **Evolution API** | WhatsApp (Baileys + Cloud API), webhooks | ✅ WhatsApp integration |
+| **Jasmin** | SMPP SMS Gateway, routing, DLR engine | ✅ SMS delivery logic |
+| **Mailcow** | Self-hosted email backend (Postfix/Dovecot) | ✅ Email delivery/storage |
 
-**Result**: `messaging_channel` (type: whatsapp or email) → `conversation` → `message` → `attachment`. One conversation model, multiple channel types. Messages from any channel appear in a unified inbox.
+**Result**: Chatwoot unified inbox powered by multiple specialized backends. Evolution API handles WhatsApp, Jasmin routes SMS, and Mailcow provides robust email infrastructure. Messages from any channel appear in one seamless UI.
 
 ### 3. Workflow Automation: Two Sources → One Engine  
 
@@ -276,8 +284,9 @@ unified-saas/
 │   │   │   │   │   └── campaign/
 │   │   │   │   ├── messaging/
 │   │   │   │   │   ├── whatsapp/       # From Evolution API
-│   │   │   │   │   ├── email/          # From Twenty
-│   │   │   │   │   ├── channel/
+│   │   │   │   │   ├── email/          # From Twenty & Mailcow
+│   │   │   │   │   ├── sms/            # From Jasmin
+│   │   │   │   │   ├── channel/        # From Chatwoot
 │   │   │   │   │   ├── conversation/
 │   │   │   │   │   └── template/
 │   │   │   │   ├── workflow/
@@ -300,7 +309,11 @@ unified-saas/
 │   │   │   │   │   └── stock/
 │   │   │   │   ├── manufacturing/
 │   │   │   │   ├── project/
-│   │   │   │   ├── support/
+│   │   │   │   ├── support/           # From Chatwoot
+│   │   │   │   │   ├── ticket/
+│   │   │   │   │   ├── article/
+│   │   │   │   │   ├── portal/
+│   │   │   │   │   └── sla/
 │   │   │   │   ├── buying/
 │   │   │   │   ├── asset/
 │   │   │   │   └── tracking/          # From Traccar
