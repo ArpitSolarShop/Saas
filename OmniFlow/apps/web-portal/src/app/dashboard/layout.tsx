@@ -13,6 +13,14 @@ const NAV_ITEMS = [
     { label: 'Deals', href: '/dashboard/deals', icon: '💰' },
     { label: 'Pipelines', href: '/dashboard/pipelines', icon: '📈' },
     { label: 'Activities', href: '/dashboard/activities', icon: '📅' },
+    // Phase 2 Modules
+    { label: 'Messaging', href: '/dashboard/messaging', icon: '💬' },
+    { label: 'Accounting', href: '/dashboard/accounting', icon: '📈' },
+    { label: 'Inventory', href: '/dashboard/inventory', icon: '📦' },
+    { label: 'Projects', href: '/dashboard/projects', icon: '📋' },
+    { label: 'Support', href: '/dashboard/support', icon: '🎫' },
+    { label: 'Procurement', href: '/dashboard/procurement', icon: '🛒' },
+    { label: 'Billing', href: '/dashboard/billing', icon: '💳' },
 ];
 
 const BOTTOM_ITEMS = [

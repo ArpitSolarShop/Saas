@@ -13,6 +13,13 @@ import { PipelineModule } from './modules/crm/pipeline/pipeline.module';
 import { CustomObjectModule } from './modules/custom-objects/custom-object.module';
 import { WebhookModule } from './modules/webhooks/webhook.module';
 import { HealthModule } from './modules/health/health.module';
+import { MessagingModule } from './modules/messaging/messaging.module';
+import { AccountingModule } from './modules/accounting/accounting.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { ProjectModule } from './modules/project/project.module';
+import { SupportModule } from './modules/support/support.module';
+import { ProcurementModule } from './modules/procurement/procurement.module';
+import { BillingModule } from './modules/billing/billing.module';
 
 @Module({
     imports: [
@@ -39,6 +46,13 @@ import { HealthModule } from './modules/health/health.module';
         PipelineModule,
         CustomObjectModule,
         WebhookModule,
+        MessagingModule,
+        AccountingModule,
+        InventoryModule,
+        ProjectModule,
+        SupportModule,
+        ProcurementModule,
+        BillingModule,
     ],
     providers: [
         { provide: APP_GUARD, useClass: ThrottlerGuard },

@@ -19,7 +19,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U omniflow"]
+      test: [ "CMD-SHELL", "pg_isready -U omniflow" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,7 +34,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -45,13 +45,13 @@ services:
     container_name: omniflow-nats
     restart: unless-stopped
     ports:
-      - "4222:4222"   # Client connections
-      - "8222:8222"   # HTTP monitoring
-    command: ["--jetstream", "--store_dir=/data", "-m", "8222"]
+      - "4222:4222" # Client connections
+      - "8222:8222" # HTTP monitoring
+    command: [ "--jetstream", "--store_dir=/data", "-m", "8222" ]
     volumes:
       - nats_data:/data
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz"]
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -69,7 +69,7 @@ services:
     volumes:
       - meili_data:/meili_data
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:7700/health"]
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:7700/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -83,13 +83,13 @@ services:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-omniflow_minio}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-omniflow_minio_secret}
     ports:
-      - "9000:9000"   # API
-      - "9001:9001"   # Console
+      - "9000:9000" # API
+      - "9001:9001" # Console
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: [ "CMD", "mc", "ready", "local" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -106,9 +106,36 @@ services:
       - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
-      - "8080:8080"   # Traefik dashboard
+      - "8080:8080" # Traefik dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  # ── n8n (Workflow Automation) ────────────────
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: omniflow-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=UTC
+      # Connect to PostgreSQL for n8n data
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB:-omniflow_dev}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER:-omniflow}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD:-omniflow_secret}
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:
@@ -116,3 +143,6 @@ volumes:
   nats_data:
   meili_data:
   minio_data:
+  n8n_data:
+
+
