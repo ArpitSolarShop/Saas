@@ -20,6 +20,8 @@ import { ProjectModule } from './modules/project/project.module';
 import { SupportModule } from './modules/support/support.module';
 import { ProcurementModule } from './modules/procurement/procurement.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
     imports: [
@@ -53,6 +55,8 @@ import { BillingModule } from './modules/billing/billing.module';
         SupportModule,
         ProcurementModule,
         BillingModule,
+        IntegrationsModule,
+        SearchModule,
     ],
     providers: [
         { provide: APP_GUARD, useClass: ThrottlerGuard },

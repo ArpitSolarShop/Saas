@@ -1,0 +1,21 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./dist",
+        "baseUrl": "./",
+        "paths": {
+            "@omniflow/database": [
+                "../../packages/database/src"
+            ],
+            "@omniflow/shared-types": [
+                "../../packages/shared-types/src"
+            ],
+            "@omniflow/event-contracts": [
+                "../../packages/event-contracts/src"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*"
+    ]
+}
