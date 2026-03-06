@@ -1,11 +1,11 @@
-# ============================================
-# OmniFlow — Local Development Stack
+﻿# ============================================
+# OmniFlow â€” Local Development Stack
 # ============================================
 # Usage: docker compose up -d
 # Boots: PostgreSQL, Redis, NATS, Meilisearch, MinIO, Traefik
 
 services:
-  # ── PostgreSQL ───────────────────────────────
+  # â”€â”€ PostgreSQL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   postgres:
     image: postgres:16-alpine
     container_name: omniflow-postgres
@@ -24,7 +24,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Redis ────────────────────────────────────
+  # â”€â”€ Redis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   redis:
     image: redis:7-alpine
     container_name: omniflow-redis
@@ -39,7 +39,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── NATS (Event Bus) ─────────────────────────
+  # â”€â”€ NATS (Event Bus) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   nats:
     image: nats:2-alpine
     container_name: omniflow-nats
@@ -56,7 +56,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Meilisearch ──────────────────────────────
+  # â”€â”€ Meilisearch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   meilisearch:
     image: getmeili/meilisearch:v1.12
     container_name: omniflow-meilisearch
@@ -74,7 +74,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── MinIO (S3-compatible Object Storage) ─────
+  # â”€â”€ MinIO (S3-compatible Object Storage) â”€â”€â”€â”€â”€
   minio:
     image: minio/minio:latest
     container_name: omniflow-minio
@@ -94,7 +94,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Traefik (Reverse Proxy & SSL) ────────────
+  # â”€â”€ Traefik (Reverse Proxy & SSL) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   traefik:
     image: traefik:v3.3
     container_name: omniflow-traefik
@@ -110,7 +110,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
-  # ── n8n (Workflow Automation) ────────────────
+  # â”€â”€ n8n (Workflow Automation) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   n8n:
     image: docker.n8n.io/n8nio/n8n
     container_name: omniflow-n8n
@@ -137,6 +137,83 @@ services:
       postgres:
         condition: service_healthy
 
+
+  # ── Prometheus (Metrics) ─────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: omniflow-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    volumes:
+      - prometheus_data:/prometheus
+
+  # ── Grafana (Dashboards) ─────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: omniflow-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  # ── Loki (Log Aggregation) ───────────────────
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: omniflow-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki_data:/loki
+
+
+  # ── Kong (API Gateway) ───────────────────────
+  kong:
+    image: kong:3.6
+    container_name: omniflow-kong
+    restart: unless-stopped
+    environment:
+      - KONG_DATABASE=postgres
+      - KONG_PG_HOST=postgres
+      - KONG_PG_USER=${POSTGRES_USER:-omniflow}
+      - KONG_PG_PASSWORD=${POSTGRES_PASSWORD:-omniflow_secret}
+      - KONG_PG_DATABASE=${POSTGRES_DB:-omniflow_dev}
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001
+    ports:
+      - "8000:8000"   # Proxy
+      - "8001:8001"   # Admin API
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Unleash (Feature Flags) ──────────────────
+  unleash:
+    image: unleashorg/unleash-server:latest
+    container_name: omniflow-unleash
+    restart: unless-stopped
+    ports:
+      - "4242:4242"
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER:-omniflow}:${POSTGRES_PASSWORD:-omniflow_secret}@postgres:5432/${POSTGRES_DB:-omniflow_dev}?schema=public
+      - DATABASE_SSL=false
+      - LOG_LEVEL=warn
+      - UNLEASH_URL=http://localhost:4242
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   redis_data:
@@ -146,3 +223,6 @@ volumes:
   n8n_data:
 
 
+  prometheus_data:
+  grafana_data:
+  loki_data:

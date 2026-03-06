@@ -1,21 +1,33 @@
 {
     "extends": "../../tsconfig.json",
     "compilerOptions": {
-        "outDir": "./dist",
-        "rootDir": "./src",
-        "module": "CommonJS",
-        "target": "ES2022",
+        "module": "commonjs",
+        "declaration": true,
+        "removeComments": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "declaration": false,
-        "declarationMap": false
-    },
-    "include": [
-        "src/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist",
-        "test"
-    ]
+        "allowSyntheticDefaultImports": true,
+        "target": "ES2021",
+        "sourceMap": true,
+        "outDir": "./dist",
+        "baseUrl": "./",
+        "incremental": true,
+        "skipLibCheck": true,
+        "strictNullChecks": false,
+        "noImplicitAny": false,
+        "strictBindCallApply": false,
+        "forceConsistentCasingInFileNames": false,
+        "noFallthroughCasesInSwitch": false,
+        "paths": {
+            "@omniflow/database": [
+                "../../packages/database/src"
+            ],
+            "@omniflow/shared-types": [
+                "../../packages/shared-types/src"
+            ],
+            "@omniflow/event-contracts": [
+                "../../packages/event-contracts/src"
+            ]
+        }
+    }
 }

@@ -1,0 +1,44 @@
+Prisma schema loaded from prisma\schema.prisma
+
+Error: Prisma schema validation - (validate wasm)
+Error code: P1012
+[1;91merror[0m: [1mError validating field `item` in model `BillOfMaterial`: The relation field `item` on model `BillOfMaterial` is missing an opposite relation field on the model `Product`. Either run `prisma format` or add it manually.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:1273[0m
+[1;94m   | [0m
+[1;94m1272 | [0m
+[1;94m1273 | [0m  [1;91mitem        Product  @relation("BOMItem", fields: [itemId], references: [id], onDelete: Cascade)[0m
+[1;94m1274 | [0m  items       BOMItem[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating field `item` in model `BOMItem`: The relation field `item` on model `BOMItem` is missing an opposite relation field on the model `Product`. Either run `prisma format` or add it manually.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:1291[0m
+[1;94m   | [0m
+[1;94m1290 | [0m  bom         BillOfMaterial @relation(fields: [bomId], references: [id], onDelete: Cascade)
+[1;94m1291 | [0m  [1;91mitem        Product        @relation("BOMComponent", fields: [itemId], references: [id])[0m
+[1;94m1292 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating field `item` in model `WorkOrder`: The relation field `item` on model `WorkOrder` is missing an opposite relation field on the model `Product`. Either run `prisma format` or add it manually.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:1312[0m
+[1;94m   | [0m
+[1;94m1311 | [0m  bom         BillOfMaterial @relation(fields: [bomId], references: [id])
+[1;94m1312 | [0m  [1;91mitem        Product        @relation("WOItem", fields: [itemId], references: [id])[0m
+[1;94m1313 | [0m  jobCards    JobCard[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating field `supplier` in model `SubcontractOrder`: The relation field `supplier` on model `SubcontractOrder` is missing an opposite relation field on the model `Supplier`. Either run `prisma format` or add it manually.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:1482[0m
+[1;94m   | [0m
+[1;94m1481 | [0m
+[1;94m1482 | [0m  [1;91msupplier    Supplier @relation(fields: [supplierId], references: [id])[0m
+[1;94m1483 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating field `ticket` in model `CsatSurvey`: The relation field `ticket` on model `CsatSurvey` is missing an opposite relation field on the model `Ticket`. Either run `prisma format` or add it manually.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:1571[0m
+[1;94m   | [0m
+[1;94m1570 | [0m
+[1;94m1571 | [0m  [1;91mticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)[0m
+[1;94m1572 | [0m
+[1;94m   | [0m
+
+Validation Error Count: 5
+[Context: validate]
+
+Prisma CLI Version : 6.19.2

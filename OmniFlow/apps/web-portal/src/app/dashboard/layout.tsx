@@ -21,9 +21,18 @@ const NAV_ITEMS = [
     { label: 'Support', href: '/dashboard/support', icon: '🎫' },
     { label: 'Procurement', href: '/dashboard/procurement', icon: '🛒' },
     { label: 'Billing', href: '/dashboard/billing', icon: '💳' },
+    // Phase 3 Modules
+    { label: 'Manufacturing', href: '/dashboard/manufacturing', icon: '🏭' },
+    { label: 'Assets', href: '/dashboard/assets', icon: '💻' },
+    { label: 'AI & Analytics', href: '/dashboard/ai', icon: '🤖' },
+    { label: 'Quality Control', href: '/dashboard/quality', icon: '✅' },
+    { label: 'Subcontracting', href: '/dashboard/subcontracting', icon: '🤝' },
+    { label: 'GPS Fleet', href: '/dashboard/fleet', icon: '🚚' },
+    { label: 'Mail Domains', href: '/dashboard/email-suite', icon: '📧' },
 ];
 
 const BOTTOM_ITEMS = [
+    { label: 'Extensions', href: '/dashboard/extensions', icon: '🧩' },
     { label: 'Settings', href: '/dashboard/settings', icon: '⚙️' },
 ];
 

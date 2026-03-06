@@ -1,0 +1,71 @@
+name: OmniFlow Production Deployment
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Core API
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/core-api/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/omniflow-api:${{ github.ref_name }},${{ secrets.DOCKERHUB_USERNAME }}/omniflow-api:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/omniflow-api:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/omniflow-api:buildcache,mode=max
+
+      - name: Build and Push Web Portal
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/web-portal/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/omniflow-web:${{ github.ref_name }},${{ secrets.DOCKERHUB_USERNAME }}/omniflow-web:latest
+
+      - name: Build and Push Background Workers
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/background-workers/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/omniflow-workers:${{ github.ref_name }},${{ secrets.DOCKERHUB_USERNAME }}/omniflow-workers:latest
+
+      - name: Build and Push AI Engine
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/ai-engine
+          file: ./apps/ai-engine/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/omniflow-ai:${{ github.ref_name }},${{ secrets.DOCKERHUB_USERNAME }}/omniflow-ai:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute Deployment Script via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            cd /opt/omniflow
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans

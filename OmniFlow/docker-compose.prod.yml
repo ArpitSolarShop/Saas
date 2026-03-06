@@ -1,0 +1,138 @@
+# ============================================
+# OmniFlow — Production Deployment Stack
+# ============================================
+
+services:
+  # ── PostgreSQL (Production Config) ───────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: omniflow-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend API ──────────────────────────────
+  api:
+    image: ${DOCKER_REGISTRY}/omniflow-api:latest
+    container_name: omniflow-api
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MEILI_HOST=http://meilisearch:7700
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        order: start-first
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # ── Web Frontend ─────────────────────────────
+  web:
+    image: ${DOCKER_REGISTRY}/omniflow-web:latest
+    container_name: omniflow-web
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        order: start-first
+
+  # ── Background Workers ───────────────────────
+  workers:
+    image: ${DOCKER_REGISTRY}/omniflow-workers:latest
+    container_name: omniflow-workers
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+      - postgres
+
+  # ── AI Engine ────────────────────────────────
+  ai-engine:
+    image: ${DOCKER_REGISTRY}/omniflow-ai:latest
+    container_name: omniflow-ai
+    restart: always
+    environment:
+      - REDIS_HOST=redis
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+  # ── Infrastructure Components ─────────────────
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    restart: always
+    environment:
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      - MEILI_ENV=production
+    volumes:
+      - meili_data:/meili_data
+
+  nats:
+    image: nats:2-alpine
+    restart: always
+    command: [ "--jetstream", "--store_dir=/data" ]
+    volumes:
+      - nats_data:/data
+
+  traefik:
+    image: traefik:v3.3
+    restart: always
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/letsencrypt
+
+volumes:
+  postgres_data:
+  redis_data:
+  nats_data:
+  meili_data:
+  traefik_certs:

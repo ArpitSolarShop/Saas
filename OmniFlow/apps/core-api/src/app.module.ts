@@ -23,6 +23,18 @@ import { BillingModule } from './modules/billing/billing.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { SearchModule } from './modules/search/search.module';
 
+// Phase 3 Modules
+import { ManufacturingModule } from './modules/manufacturing/manufacturing.module';
+import { AssetModule } from './modules/asset/asset.module';
+import { AiModule } from './modules/ai/ai.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { QualityModule } from './modules/quality/quality.module';
+import { SubcontractingModule } from './modules/subcontracting/subcontracting.module';
+import { ExtensionModule } from './modules/extension/extension.module';
+import { FleetModule } from './modules/fleet/fleet.module';
+import { SmsCampaignModule } from './modules/sms-campaign/sms-campaign.module';
+import { EmailSuiteModule } from './modules/email-suite/email-suite.module';
+
 @Module({
     imports: [
         // Global config
@@ -57,6 +69,18 @@ import { SearchModule } from './modules/search/search.module';
         BillingModule,
         IntegrationsModule,
         SearchModule,
+
+        // Phase 3 Features
+        ManufacturingModule,
+        AssetModule,
+        AiModule,
+        AnalyticsModule,
+        QualityModule,
+        SubcontractingModule,
+        ExtensionModule,
+        FleetModule,
+        SmsCampaignModule,
+        EmailSuiteModule,
     ],
     providers: [
         { provide: APP_GUARD, useClass: ThrottlerGuard },
